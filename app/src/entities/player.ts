@@ -1,26 +1,28 @@
 import playerImage from '../assets/D_Idle.png';
 import playerWalk from '../assets/D_Walk.png';
-import { PLAYER_SIZE } from '../constants';
+import { PLAYER_SIZE, TILE_SIZE } from '../constants';
 import { AnimationManager } from '../managers/animation';
 import { BoundaryManager } from '../managers/boundary';
 import { InputManager } from '../managers/input';
 import { Hitbox, isColliding } from '../managers/physics';
+import { Direction } from '../utils/direction';
 
 export class PlayerClient {
-  private position = { x: 0, y: 0 };
-  private speed = 3;
-  private image = new Image();
-  private inputManager: InputManager;
-  private animationManager: AnimationManager;
-  private hitbox: Hitbox;
-  private boundaryManager: BoundaryManager;
+  private position = { x: 200, y: 200 };
+  private facing = Direction.Down;
+  private readonly speed = 3;
+  private readonly image = new Image();
+  private readonly inputManager: InputManager;
+  private readonly animationManager: AnimationManager;
+  private readonly hitbox: Hitbox;
+  private readonly boundaryManager: BoundaryManager;
 
-  constructor(inputManager: InputManager) {
+  constructor(inputManager: InputManager, boundaryManager: BoundaryManager) {
     this.image.src = playerImage;
     this.inputManager = inputManager;
     this.animationManager = new AnimationManager();
     this.animationManager.setImage(playerImage);
-    this.boundaryManager = new BoundaryManager();
+    this.boundaryManager = boundaryManager;
     this.hitbox = {
       x: this.position.x,
       y: this.position.y,
@@ -41,14 +43,13 @@ export class PlayerClient {
     return this.hitbox;
   }
 
-  handleCollision(): boolean {
+  handleCollision(playerX: number, playerY: number): boolean {
     let collisionArr = this.boundaryManager.getBoundayArr();
+
     for (const element of collisionArr) {
       if (
-        element.x >= this.hitbox.x - 64 &&
-        element.x <= this.hitbox.x + 64 &&
-        element.y >= this.hitbox.y - 64 &&
-        element.y <= this.hitbox.y + 64
+        Math.abs(element.x - playerX) <= TILE_SIZE &&
+        Math.abs(element.y - playerY) <= TILE_SIZE
       ) {
         return isColliding(this.getHitbox(), element);
       }
@@ -57,36 +58,28 @@ export class PlayerClient {
   }
 
   handleMovement(dx: number, dy: number) {
-    //const { dx, dy } = this.inputManager.getMovement();
     const previousX = this.position.x;
     const previousY = this.position.y;
 
     this.position.x += dx * this.speed;
     this.hitbox.x = this.position.x;
 
-    // if (nesto.isColliding()) {
-    //   this.position.x = previousX;
-    // }
+    if (this.handleCollision(this.position.x, this.position.y)) {
+      console.log('this happend');
+      this.position.x = previousX;
+    }
 
     this.position.y += dy * this.speed;
     this.hitbox.y = this.position.y;
 
-    // if (nesto.isColliding()) {
-    //   this.position.y = previousY;
-    // }
+    if (this.handleCollision(this.position.x, this.position.y)) {
+      console.log('this happend 2');
+      this.position.y = previousY;
+    }
   }
 
   update(deltaTime: number) {
     const { dx, dy } = this.inputManager.getMovement();
-    if (dx !== 0 || dy !== 0) {
-      this.animationManager.setImage(playerImage);
-    }
-    if (dy == 1) {
-      this.animationManager.setImage(playerWalk);
-    }
-
-    // this.position.x += dx * this.speed;
-    // this.position.y += dy * this.speed;
     this.handleMovement(dx, dy);
 
     this.animationManager.animate(deltaTime, dx, dy);
@@ -94,16 +87,5 @@ export class PlayerClient {
 
   render(ctx: CanvasRenderingContext2D) {
     this.animationManager.render(ctx, this.getPosition());
-    // ctx.drawImage(
-    //   this.image,
-    //   this.animationManager.getCurrentFrame() * PLAYER_SIZE,
-    //   0,
-    //   PLAYER_SIZE,
-    //   PLAYER_SIZE,
-    //   this.position.x,
-    //   this.position.y,
-    //   PLAYER_SIZE,
-    //   PLAYER_SIZE
-    // );
   }
 }

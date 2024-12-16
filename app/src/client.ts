@@ -7,7 +7,7 @@ import { MapManager } from './managers/map';
 export class GameClient {
   private ctx: CanvasRenderingContext2D;
   private mapManager: MapManager;
-  private entity: PlayerClient;
+  private player: PlayerClient;
   private inputManager: InputManager;
   private cameraManager: CameraManager;
   private boundaryManager: BoundaryManager;
@@ -19,7 +19,7 @@ export class GameClient {
     this.cameraManager = new CameraManager(this.ctx);
     this.inputManager = new InputManager();
     this.boundaryManager = new BoundaryManager();
-    this.entity = new PlayerClient(this.inputManager);
+    this.player = new PlayerClient(this.inputManager, this.boundaryManager);
     this.setupCanvas();
   }
 
@@ -47,11 +47,13 @@ export class GameClient {
   }
 
   private loop(currentTime: number = 0): void {
-    this.render();
     const deltaTime = currentTime - this.lastTime;
     this.lastTime = currentTime;
-    this.entity.update(deltaTime);
-    this.cameraManager.translateTo(this.entity.getPosition());
+
+    this.render();
+    this.player.update(deltaTime);
+    this.cameraManager.translateTo(this.player.getPosition());
+
     requestAnimationFrame((time) => this.loop(time));
   }
 
@@ -59,7 +61,6 @@ export class GameClient {
     this.clearCanvas();
     this.mapManager.render(this.ctx);
     this.boundaryManager.render(this.ctx);
-    //console.log(this.boundaryManager.getBoundayArr());
-    this.entity.render(this.ctx);
+    this.player.render(this.ctx);
   }
 }

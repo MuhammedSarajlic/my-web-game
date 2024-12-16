@@ -1,12 +1,12 @@
 import tilesImage from '../assets/FieldsTileset.png';
 import { converDataToMap } from '../utils/convertJsonTo2dArray';
-import mapData from '../map/testMap.json';
+import mapData from '../map/testMap1.json';
 
 export class MapManager {
-  private tileSize = 32;
-  private tilesInRow = 8;
+  private readonly tileSize = 32;
+  private readonly tilesInRow = 8;
   private map: number[][] | null = null;
-  private tileSheet = new Image();
+  private readonly tileSheet = new Image();
 
   constructor() {
     this.tileSheet.src = tilesImage;
@@ -18,8 +18,8 @@ export class MapManager {
   }
 
   render(ctx: CanvasRenderingContext2D) {
-    this.map.forEach((row, y) => {
-      row.map((cell, x) => {
+    this.map?.forEach((row, y) => {
+      row.forEach((cell, x) => {
         const tileType = this.map[y][x];
         const yTile = Math.floor(tileType / this.tilesInRow);
         const xTile = (tileType % this.tilesInRow) - 1;
